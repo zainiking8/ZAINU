@@ -1,11 +1,11 @@
 module.exports.config = {
 	name: "say",
-	version: "1.0.1",
+	version: "2.0.0",
 	hasPermssion: 0,
-	credits: "𝐏𝐫𝐢𝐲𝐚𝐧𝐬𝐡 𝐑𝐚𝐣𝐩𝐮𝐭",
-	description: "Make the bot return google's audio file via text",
+	credits: "Priyansh Rajput & Modified by Rudra",
+	description: "Bot speaks the text using Google TTS with auto language detection (Hindi, Hinglish, English)",
 	commandCategory: "media",
-	usages: "[ru/en/ko/ja/tl] [Text]",
+	usages: "[hi/en/auto] [Text]",
 	cooldowns: 5,
 	dependencies: {
 		"path": "",
@@ -14,14 +14,36 @@ module.exports.config = {
 };
 
 module.exports.run = async function({ api, event, args }) {
+	const { createReadStream, unlinkSync } = global.nodemodule["fs-extra"];
+	const { resolve } = global.nodemodule["path"];
 	try {
-		const { createReadStream, unlinkSync } = global.nodemodule["fs-extra"];
-		const { resolve } = global.nodemodule["path"];
-		var content = (event.type == "message_reply") ? event.messageReply.body : args.join(" ");
-		var languageToSay = (["ru","en","pr","ja", "tl"].some(item => content.indexOf(item) == 0)) ? content.slice(0, content.indexOf(" ")) : global.config.language;
-		var msg = (languageToSay != global.config.language) ? content.slice(3, content.length) : content;
-		const path = resolve(__dirname, 'cache', `${event.threadID}_${event.senderID}.mp3`);
-		await global.utils.downloadFile(`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(msg)}&tl=${languageToSay}&client=tw-ob`, path);
-		return api.sendMessage({ attachment: createReadStream(path)}, event.threadID, () => unlinkSync(path), event.messageID);
-	} catch (e) { return console.log(e) };
-}
+		if (!args[0]) return api.sendMessage("❌ Please provide text to speak.\nExample: +say auto mujhe pyaar ho gaya", event.threadID, event.messageID);
+
+		const content = (event.type === "message_reply") ? event.messageReply.body : args.join(" ");
+		let lang = "auto", msg = content;
+
+		// Check prefix lang
+		const firstWord = args[0].toLowerCase();
+		const supportedLangs = ["hi", "en", "ja", "ru", "tl"];
+		if (supportedLangs.includes(firstWord)) {
+			lang = firstWord;
+			msg = args.slice(1).join(" ");
+		}
+
+		// Auto detect for Hinglish/Hindi
+		if (lang === "auto") {
+			const hindiPattern = /[क-हाि-ॣ़ा़ेैोौंःँ]/; // Hindi Unicode range
+			lang = hindiPattern.test(msg) ? "hi" : "hi"; // Force Hindi for Hinglish too
+		}
+
+		const filePath = resolve(__dirname, "cache", `${event.threadID}_${event.senderID}.mp3`);
+		const ttsURL = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(msg)}&tl=${lang}&client=tw-ob`;
+
+		await global.utils.downloadFile(ttsURL, filePath);
+		return api.sendMessage({ attachment: createReadStream(filePath) }, event.threadID, () => unlinkSync(filePath), event.messageID);
+		
+	} catch (err) {
+		console.error("[ SAY ERROR ]", err);
+		return api.sendMessage("🚫 Error generating speech. Try again later.", event.threadID, event.messageID);
+	}
+};
