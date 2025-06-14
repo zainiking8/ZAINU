@@ -3,127 +3,86 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Rudra Bot ✨</title>
+  <title>Rudra Bot — 24x7 Online</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-
     html, body {
-      width: 100%;
       height: 100%;
-      font-family: 'Poppins', sans-serif;
-      background: black;
+      font-family: 'Segoe UI', sans-serif;
       overflow: hidden;
     }
-
     .slideshow {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      width: 100%;
+      height: 100%;
       z-index: -1;
     }
-
-    .slide {
+    .slideshow img {
       position: absolute;
       width: 100%;
       height: 100%;
-      background-size: cover;
-      background-position: center;
-      animation: fade 18s infinite;
+      object-fit: cover;
       opacity: 0;
-      transition: opacity 1s ease-in-out;
+      animation: fade 15s infinite;
     }
-
-    .slide:nth-child(1) {
-      background-image: url("https://i.imgur.com/8D8s7Eb.jpeg");
-      animation-delay: 0s;
-    }
-
-    .slide:nth-child(2) {
-      background-image: url("https://i.imgur.com/JkH0rZ8.jpeg");
-      animation-delay: 6s;
-    }
-
-    .slide:nth-child(3) {
-      background-image: url("https://i.imgur.com/FHc9LDY.jpeg");
-      animation-delay: 12s;
-    }
+    .slideshow img:nth-child(1) { animation-delay: 0s; }
+    .slideshow img:nth-child(2) { animation-delay: 5s; }
+    .slideshow img:nth-child(3) { animation-delay: 10s; }
 
     @keyframes fade {
-      0%, 100% { opacity: 0; }
-      10%, 30% { opacity: 1; }
-      33%, 100% { opacity: 0; }
+      0% { opacity: 0; }
+      10% { opacity: 1; }
+      30% { opacity: 1; }
+      40% { opacity: 0; }
+      100% { opacity: 0; }
     }
 
-    .glassbox {
+    .info-box {
       position: absolute;
-      bottom: 10%;
+      bottom: 30px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(12px);
-      padding: 25px 35px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 20px 30px;
       border-radius: 20px;
-      color: #fff;
       text-align: center;
-      box-shadow: 0 0 30px rgba(255,255,255,0.15);
-      animation: pop 1s ease;
+      color: white;
+      box-shadow: 0 0 30px rgba(255, 0, 255, 0.4);
     }
 
-    .glassbox h1 {
-      font-size: 2em;
-      color: #ff5f9e;
-      text-shadow: 0 0 8px #ff5f9e;
+    .info-box h1 {
+      color: #ff4ddb;
+      font-size: 24px;
       margin-bottom: 10px;
+      text-shadow: 0 0 10px #ff4ddb;
     }
 
-    .glassbox p {
-      font-size: 1em;
+    .info-box p {
+      font-size: 16px;
       line-height: 1.5;
     }
 
-    @keyframes pop {
-      0% {
-        transform: translateX(-50%) scale(0.8);
-        opacity: 0;
-      }
-      100% {
-        transform: translateX(-50%) scale(1);
-        opacity: 1;
-      }
-    }
-
-    @media (max-width: 600px) {
-      .glassbox {
-        width: 90%;
-        padding: 20px;
-      }
-      .glassbox h1 {
-        font-size: 1.5em;
-      }
-      .glassbox p {
-        font-size: 0.9em;
-      }
+    .info-box b {
+      color: #00eaff;
     }
   </style>
 </head>
 <body>
   <div class="slideshow">
-    <div class="slide"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
+    <img src="https://i.imgur.com/8D8s7Eb.jpeg" alt="Slide 1">
+    <img src="https://i.imgur.com/JkH0rZ8.jpeg" alt="Slide 2">
+    <img src="https://i.imgur.com/FHc9LDY.jpeg" alt="Slide 3">
   </div>
 
-  <div class="glassbox">
+  <div class="info-box">
     <h1>🤖 Rudra Bot — 24x7 Online</h1>
-    <p>
-      📸 Insta ID: <strong>@haryana_aala_sayzs</strong><br>
-      📱 WhatsApp: <strong>8950386412</strong><br>
-      🔥 Always active, always stylish!
-    </p>
+    <p>📸 Insta ID: <b>@haryana_aala_sayzs</b><br/>
+    📱 WhatsApp: <b>8950386412</b><br/>
+    🔥 Always active, always stylish!</p>
   </div>
 </body>
 </html>
