@@ -1,5 +1,5 @@
 const axios = require("axios");
-const fs = require("fs-extra");
+const fs = require("fs");
 const path = require("path");
 
 module.exports.config = {
@@ -7,19 +7,18 @@ module.exports.config = {
   version: "1.0.0",
   hasPermssion: 0,
   credits: "Rudra",
-  description: "Send random Mahadev bhakti videos",
+  description: "Mahadev swag video with bhakti message",
   usePrefix: false,
   commandCategory: "noPrefix",
-  triggerWords: ["mahadev", "shiv", "bhole baba", "har har mahadev", "bam"]
 };
 
+const triggerWords = ["mahadev", "har har mahadev", "shiv", "bhole baba", "bam"];
 const videoLinks = [
   "https://i.imgur.com/DbzplKX.mp4",
   "https://i.imgur.com/KUhRKEi.mp4",
   "https://i.imgur.com/eQNdprV.mp4",
   "https://i.imgur.com/FHzHB2T.mp4"
 ];
-
 const bhaktiMessages = [
   "🔱 Har Har Mahadev! Bhakti ka asli swag yahi hai!",
   "🚩 Jai Bhole Baba! Rudra mode ON 🔥",
@@ -29,27 +28,24 @@ const bhaktiMessages = [
   "🌪️ Om Namah Shivay! Rudra style me bhakti ka blast 💥"
 ];
 
-module.exports.handleEvent = async ({ api, event }) => {
-  const content = event.body?.toLowerCase();
-  const triggers = module.exports.config.triggerWords;
-
-  if (!triggers.some(word => content.includes(word))) return;
+module.exports.handleEvent = async function ({ api, event }) {
+  const msgBody = event.body?.toLowerCase();
+  if (!msgBody || !triggerWords.some(word => msgBody.includes(word))) return;
 
   const selectedVideo = videoLinks[Math.floor(Math.random() * videoLinks.length)];
-  const selectedMsg = bhaktiMessages[Math.floor(Math.random() * bhaktiMessages.length)];
-  const tempFile = path.join(__dirname, "mahadevMedia.mp4");
+  const selectedMessage = bhaktiMessages[Math.floor(Math.random() * bhaktiMessages.length)];
+  const tempPath = path.join(__dirname, "mahadev_temp.mp4");
 
   try {
     const res = await axios.get(selectedVideo, { responseType: "arraybuffer" });
-    fs.writeFileSync(tempFile, res.data);
+    fs.writeFileSync(tempPath, res.data);
 
     api.sendMessage({
-      body: selectedMsg,
-      attachment: fs.createReadStream(tempFile)
-    }, event.threadID, () => fs.unlinkSync(tempFile));
-    
+      body: selectedMessage,
+      attachment: fs.createReadStream(tempPath)
+    }, event.threadID, () => fs.unlinkSync(tempPath));
   } catch (err) {
-    console.error("❌ Video download/send error:", err.message);
-    api.sendMessage("⚠️ Bhole ka video load nahi ho paya bhai 🙏", event.threadID);
+    console.log("❌ Error loading video:", err.message);
+    api.sendMessage("⚠️ Bhole Nath ka swag load nahi ho paaya 🙏", event.threadID);
   }
 };
