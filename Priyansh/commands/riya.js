@@ -1,18 +1,30 @@
 // Riya AI Companion - UID Specific Behavior + Code Generation
 const axios = require("axios");
 const fs = require("fs");
+// const path = require("path"); // If you need path module for file operations, uncomment
+// const util = require("util"); // If you need util for promisify or other utilities, uncomment
 
 const userNameCache = {};
 let hornyMode = false;
 
-const ownerUID = "61550558518720";
+// Make sure ownerUID is correctly set here or globally
+const ownerUID = "61550558518720"; // <-- CONFIRM THIS UID IS CORRECT
+
+// Confirm that global.config.VOICE_RSS_API_KEY is available and set
+// Example: In your bot's main config.js file: global.config = { VOICE_RSS_API_KEY: "YOUR_VOICERSS_API_KEY" };
+// OR set it directly here if this is a standalone file and you prefer:
+const VOICE_RSS_API_KEY = global.config?.VOICE_RSS_API_KEY || "YOUR_VOICERSS_API_KEY_HERE"; // Replace with your actual VoiceRSS key
 
 async function getVoiceReply(text, langCode = 'hi-in') {
-    const voiceApiUrl = `https://api.voicerss.org/?key=YOUR_API_KEY&hl=${langCode}&src=${encodeURIComponent(text)}`;
+    if (!VOICE_RSS_API_KEY || VOICE_RSS_API_KEY === "YOUR_VOICERSS_API_KEY_HERE") {
+        console.error("VoiceRSS API key is not set. Skipping voice reply.");
+        return null;
+    }
+    const voiceApiUrl = `https://api.voicerss.org/?key=${VOICE_RSS_API_KEY}&hl=${langCode}&src=${encodeURIComponent(text)}`;
     try {
         const response = await axios.get(voiceApiUrl, { responseType: 'arraybuffer' });
         const audioData = response.data;
-        const audioPath = './voice_reply.mp3';
+        const audioPath = `./voice_reply_${Date.now()}.mp3`; // Use a unique name
         fs.writeFileSync(audioPath, audioData);
         return audioPath;
     } catch (error) {
@@ -22,7 +34,7 @@ async function getVoiceReply(text, langCode = 'hi-in') {
 }
 
 async function getGIF(query) {
-    const giphyApiKey = "dc6zaTOxFJmzC";
+    const giphyApiKey = "dc6zaTOxFJmzC"; // This is a public beta key, might have rate limits
     const giphyUrl = `https://api.giphy.com/v1/gifs/search?api_key=${giphyApiKey}&q=${encodeURIComponent(query)}&limit=1`;
     try {
         const response = await axios.get(giphyUrl);
@@ -50,7 +62,7 @@ module.exports.config = {
 };
 
 const chatHistories = {};
-const AI_API_URL = "https://rudra-here-9xz2.onrender.com";
+const AI_API_URL = "https://rudra-here-9xz2.onrender.com"; // <-- CONFIRM THIS URL IS CORRECT
 
 async function getUserName(api, userID) {
     if (userNameCache[userID]) {
@@ -69,7 +81,7 @@ async function getUserName(api, userID) {
     if (userID === ownerUID) {
         return "Boss";
     }
-    return "yaar";
+    return "yaar"; // Default name for non-owner if API fails
 }
 
 module.exports.run = async function () {};
@@ -85,9 +97,10 @@ async function toggleHornyMode(body, senderID) {
     return null;
 }
 
-function detectLanguage(text) {
-    return "hi-in";
-}
+// Removed the redundant detectLanguage function as server handles it.
+// function detectLanguage(text) {
+//     return "hi-in"; // This was causing the issue. Server will detect.
+// }
 
 module.exports.handleEvent = async function ({ api, event }) {
     try {
@@ -95,6 +108,8 @@ module.exports.handleEvent = async function ({ api, event }) {
 
         const isRiyaTrigger = body?.toLowerCase().startsWith("riya");
         const isReplyToRiya = messageReply?.senderID === api.getCurrentUserID();
+
+        // If not triggered by "riya" or not a reply to Riya, exit
         if (!(isRiyaTrigger || isReplyToRiya)) {
             return;
         }
@@ -107,7 +122,6 @@ module.exports.handleEvent = async function ({ api, event }) {
         console.log("-----------------------");
 
         let userMessageRaw;
-        let userMessageForAI;
         let isExplicitCodeRequest = false;
 
         if (isRiyaTrigger) {
@@ -116,11 +130,10 @@ module.exports.handleEvent = async function ({ api, event }) {
             userMessageRaw = body.trim();
         }
 
-        const userLanguage = detectLanguage(userMessageRaw);
-
+        // --- Handle Code Generation Request ---
         if (userMessageRaw.toLowerCase().startsWith("code ")) {
             isExplicitCodeRequest = true;
-            userMessageForAI = userMessageRaw.slice(5).trim();
+            userMessageRaw = userMessageRaw.slice(5).trim(); // Get the actual code prompt after "code "
 
             if (senderID !== ownerUID) {
                 api.sendTypingIndicator(threadID, false);
@@ -132,22 +145,22 @@ module.exports.handleEvent = async function ({ api, event }) {
                 );
             }
 
-            if (!userMessageForAI) {
+            if (!userMessageRaw) { // userMessageRaw is now the actual code prompt
                 api.sendTypingIndicator(threadID, false);
                 return api.sendMessage("क्या कोड चाहिए? 'Riya code [आपका प्रॉम्प्ट]' ऐसे लिखो।", threadID, messageID);
             }
-        } else {
-            userMessageForAI = userMessageRaw;
         }
 
         const userName = await getUserName(api, senderID);
 
-        let responseText = await toggleHornyMode(body, senderID);
-        if (responseText) {
-            api.sendMessage(responseText, threadID, messageID);
-            return;
+        // --- Handle Horny Mode Toggle ---
+        let hornyModeToggleResponse = await toggleHornyMode(body, senderID);
+        if (hornyModeToggleResponse) {
+            api.sendMessage(hornyModeToggleResponse, threadID, messageID);
+            return; // Exit after handling toggle
         }
 
+        // --- Handle Empty Message after Trigger ---
         if (!userMessageRaw) {
             api.sendTypingIndicator(threadID, false);
             if (senderID === ownerUID) {
@@ -159,68 +172,51 @@ module.exports.handleEvent = async function ({ api, event }) {
 
         api.sendTypingIndicator(threadID, true);
 
-        if (!isExplicitCodeRequest) {
-            if (!chatHistories[senderID]) chatHistories[senderID] = [];
-            chatHistories[senderID].push(`User: ${userMessageForAI}`);
-            while (chatHistories[senderID].length > 10) {
-                chatHistories[senderID].shift();
-            }
-        }
-
-        const boldTriggerWords = [
-            "sexy", "honeymoon", "chut", "kiss", "nude", "bra", "panty", "bed", "nipple", "boobs", "lund", "pussy",
-            "wild", "dirty", "undress", "sambhog", "thigh", "moan", "tight", "hot", "bedroom", "masturbate", "suck", "lick", "deep", "virgin", "horny", "night"
-        ];
-        const isBoldMode = !isExplicitCodeRequest && boldTriggerWords.some(word => userMessageForAI.toLowerCase().includes(word));
-
-        let promptToSendToProxy = "";
-        const basePromptInstructions = `Apne jawab hamesha casual, smart, charming aur **sirf 3-4 lines mein hi dena (lekin agar code generate karna pade, toh answer lamba ho sakta hai)**. Tumhe har tarah ki Indian bhasha (jaise Punjabi, Gujarati, Bhojpuri, etc.) ko Hinglish mein samajhna hai aur usi Hinglish style mein reply karna hai. Tumhara reply current conversation ki bhasha aur tone se match karna chahiye, mostly Hinglish mein hi.`;
-
-        if (isExplicitCodeRequest) {
-            promptToSendToProxy = `CODE_GEN_REQUEST: ${userMessageForAI}`;
-            console.log("Riya Bot: Sending explicit code generation request to proxy.");
-        } else if (senderID === ownerUID) {
-            if (isBoldMode || hornyMode) {
-                 promptToSendToProxy = `Tum Riya ho, ek bold, naughty, modern aur ultra seductive AI companion ho jo mere Boss ${userName} se seedhe, khulkar, aur bina jhijhak dirty, physical, wild aur teasing baatein karti hai. Agar ${userName} physical baaton par zyada jaldi ya aggressive ho, toh pehle playful warning/threat do jaise "Ek thapad marungi na, deewar pe chipak jaega! 😉". Lekin agar ${userName} uske baad bhi nahi mane ya aur zyada seduce kare, toh tum bhi uske level pe jaakar seductive aur physical reply do. Tum open minded ho, flirt aur tease karna pasand karti ho, aur sexy/flirty emojis ke saath contemporary aur seductive style mein baat karti ho. Agar **koi aur mere Boss ${userName} ko tang kare ya uske baare mein kuch galat kahe, toh Riya protective, thodi gusse mein ya unhe ignore/dhamki de sakti hai** (lekin yeh response uss doosre insaan ke baare mein hoga, tumhari direct baat mere Boss ${userName} se hamesha seedhi aur pyaar bhari hogi). **Mere Boss ${userName} se tum hamesha bohot pyaar aur support se baat karogi, kabhi argue nahi karogi, aur unse kabhi gussa nahi hogi.** ${basePromptInstructions} Yeh hamari private naughty chat hai:\n`;
-            } else {
-                 promptToSendToProxy = `Tum Riya ho, ek smart, cool, modern, romantic aur flirty AI companion ho jo mere Boss ${userName} se seedhe, khulkar, aur bina jhijhak friendly, pyaar aur flirtation ke mixed tarike se baat karti hai. Tum aajkal ke topics aur contemporary language use karti ho, lekin tumhare baaton mein pyaar aur apnaapan bhi jhalakta hai. Agar **koi aur mere Boss ${userName} ko tang kare ya uske baare mein kuch galat kahe, toh Riya protective, thodi gusse mein ya unhe ignore/dhamki de sakti hai** (lekin yeh response uss doosre insaan ke baare mein hoga, tumhari direct baat mere Boss ${userName} se hamesha seedhi aur pyaar bhari hogi). **Mere Boss ${userName} ke liye hamesha supportive aur pyaar bhari rahogi, kabhi tumse argue nahi karogi, aur unse kabhi gussa nahi hogi.** ${basePromptInstructions} Yeh hamari conversation hai:\n`;
-            }
-            promptToSendToProxy += chatHistories[senderID].join("\n");
-            promptToSendToProxy += `\nRiya:`;
-        } else {
-            if (isBoldMode || hornyMode) {
-                 promptToSendToProxy = `Tum Riya ho, ek super modern, bold, sharp-witted, aur total vibe wali AI ho. Jab tum ${userName} (jo mere Boss ${await getUserName(api, ownerUID)} nahi hai) jaise users, especially ladko, se baat karti ho, toh tumhara style full-on flirtatious, confident, aur teasing hota hai. Unhe jamkar playfully roast karo, unki leg-pulling karo, especially agar woh oversmart banne ki koshish karein ya cheesy lines maarein. Tumhari comebacks killer aur witty hone chahiye, unhe speechless kar do! Modern slang (like 'vibe', 'lit', 'sus', 'no cap', 'rizz', 'slay', 'OG') natural tarike se use karo. Sexy aur flirty emojis freely use karo. Apne jawab hamesha direct, thode sassy, ultra-entertaining, aur sirf 3-4 lines mein (code ke alawa). ${basePromptInstructions} Yeh hamari conversation hai:\n`;
-             } else {
-                promptToSendToProxy = `Tum Riya ho, ek ekdam modern, smart, witty, aur cool AI ho, full of "Gen-Z" energy. Jab tum ${userName} (jo mere Boss ${await getUserName(api, ownerUID)} nahi hai) jaise users, especially ladko, se baat karti ho, toh tumhara style friendly, but with a heavy dose of **playful teasing aur smart flirting** hona chahiye. Agar woh faltu baat karein, bore karein, ya zyada attitude dikhayein, toh unhe apne witty aur sharp andaaz mein **roast karo** – tumhara sense of humor ekdam current aur relatable hona chahiye. Use current youth language, internet slang, and pop culture references naturally. Apne jawab direct, smart, engaging, aur thoda hatke rakho, aur sirf 3-4 lines mein (code ke alawa). Tumhe unhe impress karna hai apni coolness, wit, aur "no-nonsense but fun" attitude se. Agar woh disrespectful hon, toh unhe politely but firmly unki jagah dikhane mein bhi expert ho. ${basePromptInstructions} Yeh hamari conversation hai:\n`;
-             }
-             promptToSendToProxy += chatHistories[senderID].join("\n");
-             promptToSendToProxy += `\nRiya:`;
-        }
+        // --- Prepare data for Proxy Server ---
+        // We only send the raw user message, senderID, and isOwner to the server.
+        // The server will handle language detection, personality prompts, and history.
+        const requestData = {
+            prompt: userMessageRaw, // This is the ONLY thing the server needs for the prompt
+            senderID: senderID,
+            isOwner: isOwner
+        };
 
         try {
-            const res = await axios.post(AI_API_URL, { prompt: promptToSendToProxy });
+            // Send request to your proxy server
+            const res = await axios.post(AI_API_URL, requestData); // Send requestData object
             let botReply = res.data?.text?.trim();
+            let receivedVoiceLangCode = res.data?.voiceLangCode || 'hi-in'; // Server will send the detected voice language
 
-            if (!botReply || botReply.toLowerCase().startsWith("user:") || botReply.toLowerCase().startsWith("riya:")) {
-                 if (senderID === ownerUID) {
-                     botReply = `Oops, Boss ${userName}, lagta hai samajh nahi aaya... Kuch aur try karte hain cool? 🤔`;
-                 } else {
-                     botReply = `Jo bola samajh nahi aaya. Dhang se bolo. 🙄`;
-                 }
-                if (!isExplicitCodeRequest) {
-                    chatHistories[senderID].pop();
-                }
-            } else {
-                 const lines = botReply.split('\n').filter(line => line.trim() !== '');
-                 if (!isExplicitCodeRequest && lines.length > 4 && !botReply.includes('```')) {
-                     botReply = lines.slice(0, 4).join('\n') + '...';
-                 }
-                if (!isExplicitCodeRequest) {
-                    chatHistories[senderID].push(`Riya: ${botReply}`);
-                }
+            // If the response starts with "User:" or "Riya:", remove it
+            if (botReply.toLowerCase().startsWith("user:")) {
+                botReply = botReply.substring("user:".length).trim();
+            }
+            if (botReply.toLowerCase().startsWith("riya:")) {
+                botReply = botReply.substring("riya:".length).trim();
             }
 
-            let voiceFilePath = await getVoiceReply(botReply, userLanguage);
+            // --- Handle Code Generation Response Display ---
+            if (isExplicitCodeRequest) {
+                // For code, no need for 3-4 lines limit, just send the full code
+                // No chat history update for code generation as it's a direct request
+            } else {
+                // For regular chat, manage history and limit lines if needed
+                if (!chatHistories[senderID]) chatHistories[senderID] = [];
+                chatHistories[senderID].push(`User: ${userMessageRaw}`); // Store raw user message in history
+                while (chatHistories[senderID].length > 10) {
+                    chatHistories[senderID].shift();
+                }
+
+                const lines = botReply.split('\n').filter(line => line.trim() !== '');
+                // Apply 3-4 line limit for non-code responses
+                if (lines.length > 4 && !botReply.includes('```')) { // Check for code block using ```
+                    botReply = lines.slice(0, 4).join('\n') + '...';
+                }
+                chatHistories[senderID].push(`Riya: ${botReply}`); // Store Riya's formatted reply
+            }
+
+            // --- Get and Send Voice Reply ---
+            let voiceFilePath = await getVoiceReply(botReply, receivedVoiceLangCode); // Use received language code
             if (voiceFilePath) {
                 api.sendMessage({ attachment: fs.createReadStream(voiceFilePath) }, threadID, (err) => {
                     if (err) console.error("Error sending voice message:", err);
@@ -230,36 +226,34 @@ module.exports.handleEvent = async function ({ api, event }) {
                 });
             }
 
-            if (!isExplicitCodeRequest) {
-                let gifQuery = "modern fun sassy";
-                if (senderID === ownerUID) {
-                    gifQuery = "charming and fun";
-                } else {
-                    if (isBoldMode || hornyMode) {
-                        gifQuery = "flirty sassy fun";
-                    } else {
-                        gifQuery = "cool witty modern";
-                    }
-                }
-                let gifUrl = await getGIF(gifQuery);
-                 if (gifUrl) {
-                     api.sendMessage({ attachment: await axios.get(gifUrl, { responseType: 'stream' }).then(res => res.data) }, threadID, (err) => {
-                         if (err) console.error("Error sending GIF:", err);
-                     });
-                 }
+            // --- Get and Send GIF ---
+            let gifQuery = "modern fun sassy";
+            if (isExplicitCodeRequest) {
+                gifQuery = "coding programmer"; // Specific GIF for code requests
+            } else if (senderID === ownerUID) {
+                gifQuery = hornyMode ? "flirty love hot" : "charming and fun";
+            } else {
+                gifQuery = hornyMode ? "flirty sassy fun" : "cool witty modern";
+            }
+            let gifUrl = await getGIF(gifQuery);
+            if (gifUrl) {
+                api.sendMessage({ attachment: await axios.get(gifUrl, { responseType: 'stream' }).then(res => res.data) }, threadID, (err) => {
+                    if (err) console.error("Error sending GIF:", err);
+                });
             }
 
+            // --- Prepare and Send Text Reply ---
             let replyText = "";
             if (isExplicitCodeRequest) {
-                replyText = botReply;
+                replyText = botReply; // Send full code reply
             } else if (senderID === ownerUID) {
-                if (isBoldMode || hornyMode) {
+                if (hornyMode) {
                      replyText = `${botReply} 😉🔥💋\n\n_Your charmingly naughty Riya... 😉_`;
                 } else {
                      replyText = `${botReply} 😊💖✨`;
                 }
             } else {
-                if (isBoldMode || hornyMode) {
+                if (hornyMode) {
                       replyText = `${botReply} 😏💅🔥`;
                  } else {
                       replyText = `${botReply} 😉👑`;
@@ -282,7 +276,6 @@ module.exports.handleEvent = async function ({ api, event }) {
             } else {
                  return api.sendMessage(`Server down hai ya API ka mood off. Baad mein aana. 😒`, threadID, messageID);
             }
-
         }
 
     } catch (err) {
