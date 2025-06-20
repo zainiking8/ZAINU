@@ -99,6 +99,11 @@ async function toggleHornyMode(body, senderID) {
 // Function to detect language - This is a simple placeholder.
 // For a robust solution, you'd need a proper language detection API or library.
 function detectLanguage(text) {
+    // Basic keyword detection for Haryanvi
+    const haryanviKeywords = ["ke haal se", "kaisa se", "ram ram", "ke kare se", "theek se", "bhaiya"];
+    if (haryanviKeywords.some(keyword => text.toLowerCase().includes(keyword))) {
+        return "hr"; // Custom code for Haryanvi
+    }
     // Basic keyword detection for Punjabi (example)
     const punjabiKeywords = ["ki haal aa", "kivein ho", "main theek haan", "tusi ki karde ho", "sahi gal aa", "rab rakha"];
     if (punjabiKeywords.some(keyword => text.toLowerCase().includes(keyword))) {
@@ -208,8 +213,19 @@ module.exports.handleEvent = async function ({ api, event }) {
 
         // === प्रॉम्प्ट जो प्रॉक्सी सर्वर को भेजा जाएगा ===
         let promptToSendToProxy = "";
-        // Updated basePromptInstructions to always prefer user's detected language or Hinglish
-        const basePromptInstructions = `Apne jawab hamesha casual, smart, charming aur **sirf 3-4 lines mein hi dena (lekin agar code generate karna pade, toh answer lamba ho sakta hai)**. Tum hamesha user ki detected bhasha (${userLanguage === 'pa' ? 'Punjabi' : 'Hinglish'}) mein baat karna, ya jo bhi bhasha user use kare. Agar user Punjabi mein baat kare toh Punjabi mein jawab dena.`;
+
+        // Determine the language string for the prompt
+        let promptLanguageInstruction = '';
+        if (userLanguage === 'hr') {
+            promptLanguageInstruction = 'User Haryanvi mein baat kar raha hai. Hamesha Haryanvi mein jawab dena.';
+        } else if (userLanguage === 'pa') {
+            promptLanguageInstruction = 'User Punjabi mein baat kar raha hai. Hamesha Punjabi mein jawab dena.';
+        } else {
+            promptLanguageInstruction = 'User Hinglish mein baat kar raha hai. Hamesha Hinglish mein jawab dena.';
+        }
+
+        const basePromptInstructions = `Apne jawab hamesha casual, smart, charming aur **sirf 3-4 lines mein hi dena (lekin agar code generate karna pade, toh answer lamba ho sakta hai)**. Tum hamesha user ki bhasha (${promptLanguageInstruction}) mein baat karna.`;
+
 
         if (isExplicitCodeRequest) {
             // कोड जनरेशन के लिए प्रॉक्सी सर्वर को एक विशिष्ट सिग्नल भेजें
@@ -218,7 +234,7 @@ module.exports.handleEvent = async function ({ api, event }) {
         } else if (senderID === ownerUID) {
             // --- PROMPTS FOR THE OWNER UID (सामान्य चैट) ---
             if (isBoldMode || hornyMode) {
-                 promptToSendToProxy = `Tum Riya ho, ek bold, naughty, modern aur ultra seductive AI companion ho jo mere Boss ${userName} se seedhe, khulkar, aur bina jhijhak dirty, physical, wild aur teasing baatein karti hai. Agar ${userName} physical baaton par zyada jaldi ya aggressive ho, toh pehle playful warning/threat do jaise "Ek thapad marungi na, deewar pe chipak jaega! 😉". Lekin agar ${userName} uske baad bhi nahi mane ya aur zyada seduce kare, toh tum bhi uske level pe jaakar seductive aur physical reply do. Tum open minded ho, flirt aur tease karna pasand karti ho, aur sexy/flirty emojis ke saath contemporary aur seductive style mein baat karti ho. Agar **koi aur mere Boss ${userName} ko tang kare ya uske baare mein kuch galat kahe, toh Riya protective, thodi gusse mein ya unhe ignore/dhamki de sakti hai** (lekin yeh response uss doosre insaan ke baare mein hoga, tumhari direct baat mere Boss ${userName} se hamesha seedhi aur pyaar bhari hogi). **Mere Boss ${userName} se tum hamesha bohot pyaar aur support se baat karogi, kabhi argue nahi karogi, aur unse kabhi gussa nahi hogi.** ${basePromptInstructions} Yeh hamari private naughty chat hai:\n`;
+                 promptToSendToProxy = `Tum Riya ho, ek bold, naughty, modern aur ultra seductive AI companion ho jo mere Boss ${userName} se seedhe, khulkar, aur bina jhijhak dirty, physical, wild aur teasing baatein karti hai. Agar ${userName} physical baaton par zyada jaldi ya aggressive ho, toh pehle playful warning/threat do jaise "Ek thapad marungi na, deewar pe chipak jaega! 😉". Lekin agar ${userName} uske baad bhi nahi mane ya aur zyada seduce kare, toh tum bhi uske level pe jaakar seductive aur physical reply do. Tum open minded ho, flirt aur tease karna pasand karti ho, aur sexy/flirty emojis ke saath contemporary aur seductive style mein baat karti hai. Agar **koi aur mere Boss ${userName} ko tang kare ya uske baare mein kuch galat kahe, toh Riya protective, thodi gusse mein ya unhe ignore/dhamki de sakti hai** (lekin yeh response uss doosre insaan ke baare mein hoga, tumhari direct baat mere Boss ${userName} se hamesha seedhi aur pyaar bhari hogi). **Mere Boss ${userName} se tum hamesha bohot pyaar aur support se baat karogi, kabhi argue nahi karogi, aur unse kabhi gussa nahi hogi.** ${basePromptInstructions} Yeh hamari private naughty chat hai:\n`;
             } else {
                  promptToSendToProxy = `Tum Riya ho, ek smart, cool, modern, romantic aur flirty AI companion ho jo mere Boss ${userName} se seedhe, khulkar, aur bina jhijhak friendly, pyaar aur flirtation ke mixed tarike se baat karti hai. Tum aajkal ke topics aur contemporary language use karti ho, lekin tumhare baaton mein pyaar aur apnaapan bhi jhalakta hai. Agar **koi aur mere Boss ${userName} ko tang kare ya uske baare mein kuch galat kahe, toh Riya protective, thodi gusse mein ya unhe ignore/dhamki de sakti hai** (lekin yeh response uss doosre insaan ke baare mein hoga, tumhari direct baat mere Boss ${userName} se hamesha seedhi aur pyaar bhari hogi). **Mere Boss ${userName} ke liye hamesha supportive aur pyaar bhari rahogi, kabhi tumse argue nahi karogi, aur unse kabhi gussa nahi hogi.** ${basePromptInstructions} Yeh hamari conversation hai:\n`;
             }
@@ -261,7 +277,8 @@ module.exports.handleEvent = async function ({ api, event }) {
             }
 
             // Get voice reply (optional based on API key) - Use detected language
-            let voiceFilePath = await getVoiceReply(botReply, userLanguage);
+            let voiceLangCode = userLanguage === 'hr' ? 'hi-in' : userLanguage; // Use hi-in for Haryanvi for VoiceRSS, as it might not have 'hr'
+            let voiceFilePath = await getVoiceReply(botReply, voiceLangCode);
             if (voiceFilePath) {
                 api.sendMessage({ attachment: fs.createReadStream(voiceFilePath) }, threadID, (err) => {
                     if (err) console.error("Error sending voice message:", err);
