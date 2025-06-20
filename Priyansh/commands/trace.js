@@ -3,23 +3,25 @@ module.exports = {
     name: "trace",
     version: "1.0",
     author: "Rudra",
-    description: "Track mentioned user via tracker link",
-    category: "tools",
-    role: 0
+    cooldowns: 5,
+    role: 0,
+    shortDescription: {
+      en: "Generate a tracking link for mentioned user"
+    },
+    category: "tools"
   },
 
-  onStart: async function ({ api, event }) {
+  onStart: async function ({ api, event, args }) {
     const mention = Object.keys(event.mentions)[0];
-    
-    if (!mention)
-      return api.sendMessage("⚠️ कृपया किसी को mention करें जिसे track करना है.\nउदाहरण: trace @username", event.threadID);
+    if (!mention) return api.sendMessage("❌ Please mention someone to trace.", event.threadID, event.messageID);
 
     const name = event.mentions[mention];
     const link = `https://tracker-rudra.onrender.com/?uid=${mention}`;
+    const time = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
 
-    return api.sendMessage({
-      body: `🕵️‍♂️ Tracker Link Generated for @${name}:\n🔗 ${link}`,
-      mentions: [{ tag: name, id: mention }]
-    }, event.threadID);
+    api.sendMessage({
+      body: `🕵️‍♂️ 𝑹𝒖𝒅𝒓𝒂 𝑻𝒓𝒂𝒄𝒌 𝑳𝒊𝒏𝒌\n\n👤 Target: ${name}\n🔗 Link: ${link}\n🕒 Time: ${time}`,
+      mentions: [{ id: mention, tag: name }]
+    }, event.threadID, event.messageID);
   }
 };
