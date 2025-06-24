@@ -376,4 +376,4 @@ module.exports.handleEvent = async function ({ api, event }) {
              return api.sendMessage(`System glitchy ho raha hai, ${fallbackUserName}. Thoda break le lo. 🙄`, event.threadID, replyToMessageID);
          }
     }
-};
+}; 
