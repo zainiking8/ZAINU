@@ -5,6 +5,7 @@ const fs = require("fs");
 // User name cache to avoid fetching name repeatedly
 const userNameCache = {};
 let hornyMode = false; // Default mode
+let riyaEnabled = true; // NEW: Default to Riya being enabled (नया: Riya डिफ़ॉल्ट रूप से चालू रहेगी)
 
 // === SET YOUR OWNER UID HERE ===
 // महत्वपूर्ण: अपना Facebook UID यहां अपडेट करें!
@@ -49,12 +50,12 @@ async function getGIF(query) {
 
 module.exports.config = {
     name: "Riya",
-    version: "2.7.0", // Updated version for multi-language changes
+    version: "2.8.0", // Updated version for new features
     hasPermssion: 0,
     credits: "Rudra + API from Angel code + Logging & User Name by Gemini + Code Generation Ability + Personality & Multi-language Enhanced by User Request",
-    description: "Riya, your AI companion: modern, smart, flirty with users, roasts playfully, and super respectful to Owner. UID specific behavior. Responds only when triggered. Modified for 3-4 line replies (with code exceptions). Speaks in user's preferred language (Hinglish/Punjabi/etc.).",
+    description: "Riya, your AI companion: modern, smart, flirty with users, roasts playfully, and super respectful to Owner. UID specific behavior. Responds only when triggered. Modified for 3-4 line replies (with code exceptions). Speaks in user's preferred language (Hinglish/Punjabi/etc.). Owner can turn Riya on/off.",
     commandCategory: "AI-Companion",
-    usages: "Riya [आपका मैसेज] / Riya code [आपका कोड प्रॉम्प्ट] (Owner Only) / Reply to Riya",
+    usages: "Riya [आपका मैसेज] / Riya code [आपका कोड प्रॉम्प्ट] (Owner Only) / Riya on (Owner Only) / Riya off (Owner Only) / Reply to Riya",
     cooldowns: 2,
 };
 
@@ -96,26 +97,51 @@ async function toggleHornyMode(body, senderID) {
     return null;
 }
 
-// Function to detect language - This is a simple placeholder.
-// For a robust solution, you'd need a proper language detection API or library.
+// NEW: Function to toggle Riya's on/off state for the owner (नया: मालिक के लिए Riya की चालू/बंद स्थिति बदलने का फ़ंक्शन)
+async function toggleRiyaOnOff(body, senderID, api, threadID, messageID) {
+    if (senderID !== ownerUID) {
+        // Only the owner can use this command (यह कमांड केवल मालिक ही उपयोग कर सकता है)
+        return null;
+    }
+
+    if (body.toLowerCase().includes("riya on")) {
+        if (riyaEnabled) {
+            return "Mai pehle se hi ON hu Boss! 😉";
+        }
+        riyaEnabled = true;
+        return "Mai aa gayi Boss! Bolo kya karna hai? 😎";
+    } else if (body.toLowerCase().includes("riya off")) {
+        if (!riyaEnabled) {
+            return "Mai pehle se hi OFF hu Boss. 😴";
+        }
+        riyaEnabled = false;
+        return "Okay Boss, mai OFF ho gayi. Jab bulana, 'Riya on' bol dena. 👋";
+    }
+    return null;
+}
+
+// Updated Function to detect language - More robust placeholder (भाषा पहचानने के लिए अपडेट किया गया फ़ंक्शन - ज़्यादा मज़बूत)
 function detectLanguage(text) {
-    // Basic keyword detection for Haryanvi
-    const haryanviKeywords = ["ke haal se", "kaisa se", "ram ram", "ke kare se", "theek se", "bhaiya"];
-    if (haryanviKeywords.some(keyword => text.toLowerCase().includes(keyword))) {
+    const lowerText = text.toLowerCase();
+
+    // Haryanvi keywords (हरियाणवी शब्द)
+    const haryanviKeywords = ["ke haal se", "kaisa se", "ram ram", "ke kare se", "theek se", "bhaiya", "ghana", "bhaichara", "kardiya"];
+    if (haryanviKeywords.some(keyword => lowerText.includes(keyword))) {
         return "hr"; // Custom code for Haryanvi
     }
-    // Basic keyword detection for Punjabi (example)
-    const punjabiKeywords = ["ki haal aa", "kivein ho", "main theek haan", "tusi ki karde ho", "sahi gal aa", "rab rakha"];
-    if (punjabiKeywords.some(keyword => text.toLowerCase().includes(keyword))) {
-        return "pa"; // Placeholder for Punjabi, actual code might be 'pa-in' or similar for VoiceRSS
+    // Punjabi keywords (पंजाबी शब्द)
+    const punjabiKeywords = ["ki haal aa", "kivein ho", "main theek haan", "tusi ki karde ho", "sahi gal aa", "rab rakha", "chak de", "patiala", "jatt", "karda"];
+    if (punjabiKeywords.some(keyword => lowerText.includes(keyword))) {
+        return "pa"; // Placeholder for Punjabi
     }
-    // Check for common Hindi/Hinglish phrases
-    const hindiKeywords = ["kya hal hai", "theek hu", "kya kar rahe ho", "sahi baat hai", "acha", "theek hai"];
-    if (hindiKeywords.some(keyword => text.toLowerCase().includes(keyword))) {
+    // Hindi/Hinglish keywords - Broader set (हिंदी/हिंग्लिश शब्द - व्यापक सेट)
+    const hindiKeywords = ["kya hal hai", "theek hu", "kya kar rahe ho", "sahi baat hai", "acha", "theek hai", "bhai", "yaar", "kya", "kyun", "kaise", "kab", "mujhe", "tumhe", "mera", "tumhara", "nahi", "han", "kardo", "bolo", "achha"];
+    if (hindiKeywords.some(keyword => lowerText.includes(keyword))) {
         return "hi-in"; // Hindi (India)
     }
-    // Default to Hinglish
-    return "hi-in"; // Default to Hindi-India for Hinglish
+
+    // Default to Hinglish (which VoiceRSS can handle as hi-in) (हिंग्लिश पर डिफ़ॉल्ट, जिसे VoiceRSS hi-in के रूप में संभाल सकता है)
+    return "hi-in";
 }
 
 
@@ -125,8 +151,27 @@ module.exports.handleEvent = async function ({ api, event }) {
 
         const isRiyaTrigger = body?.toLowerCase().startsWith("riya");
         const isReplyToRiya = messageReply?.senderID === api.getCurrentUserID();
+
+        // NEW: Check for Riya on/off command first, it should always work for owner
+        // (नया: Riya के चालू/बंद कमांड को पहले जांचें, यह मालिक के लिए हमेशा काम करना चाहिए)
+        const onOffResponse = await toggleRiyaOnOff(body, senderID, api, threadID, messageID);
+        if (onOffResponse) {
+            return api.sendMessage(onOffResponse, threadID, messageID);
+        }
+
+        // NEW: If Riya is disabled and it's not an on/off command, just return
+        // (नया: अगर Riya बंद है और यह चालू/बंद कमांड नहीं है, तो बस वापस लौट जाएं)
+        if (!riyaEnabled && senderID !== ownerUID) { // Owner can still use "Riya on" when off
+            return;
+        }
+        if (!riyaEnabled && senderID === ownerUID && !body.toLowerCase().includes("riya on")) {
+             // If owner sends something other than "Riya on" when Riya is off
+             return;
+        }
+
+
         if (!(isRiyaTrigger || isReplyToRiya)) {
-            return; // Ignore messages that are not triggers
+            return; // Ignore messages that are not triggers (उन संदेशों को अनदेखा करें जो ट्रिगर नहीं हैं)
         }
 
         console.log("--- Riya HandleEvent ---");
@@ -134,6 +179,7 @@ module.exports.handleEvent = async function ({ api, event }) {
         console.log("Sender ID:", senderID);
         console.log("Is Owner UID:", senderID === ownerUID);
         console.log("Message Body:", body);
+        console.log("Riya Enabled:", riyaEnabled); // NEW: Log current status (नया: वर्तमान स्थिति लॉग करें)
         console.log("-----------------------");
 
         let userMessageRaw; // उपयोगकर्ता द्वारा भेजा गया मूल मैसेज
@@ -146,7 +192,7 @@ module.exports.handleEvent = async function ({ api, event }) {
             userMessageRaw = body.trim();
         }
 
-        // Detect language of the user's current message
+        // Detect language of the user's current message (उपयोगकर्ता के वर्तमान संदेश की भाषा पहचानें)
         const userLanguage = detectLanguage(userMessageRaw);
 
         // --- कोड जनरेशन कमांड की जांच करें ---
@@ -214,17 +260,24 @@ module.exports.handleEvent = async function ({ api, event }) {
         // === प्रॉम्प्ट जो प्रॉक्सी सर्वर को भेजा जाएगा ===
         let promptToSendToProxy = "";
 
-        // Determine the language string for the prompt
+        // Determine the language string for the prompt (प्रॉम्प्ट के लिए भाषा स्ट्रिंग निर्धारित करें)
         let promptLanguageInstruction = '';
+        let voiceLangCodeForPrompt = 'hi-in'; // Default for VoiceRSS if detected is custom
+
         if (userLanguage === 'hr') {
             promptLanguageInstruction = 'User Haryanvi mein baat kar raha hai. Hamesha Haryanvi mein jawab dena.';
+            voiceLangCodeForPrompt = 'hi-in'; // VoiceRSS might not have 'hr', so use hi-in
         } else if (userLanguage === 'pa') {
             promptLanguageInstruction = 'User Punjabi mein baat kar raha hai. Hamesha Punjabi mein jawab dena.';
+            voiceLangCodeForPrompt = 'pa-in'; // VoiceRSS has 'pa-in' for Punjabi
         } else {
             promptLanguageInstruction = 'User Hinglish mein baat kar raha hai. Hamesha Hinglish mein jawab dena.';
+            voiceLangCodeForPrompt = 'hi-in'; // Default for Hinglish
         }
 
-        const basePromptInstructions = `Apne jawab hamesha casual, smart, charming aur **sirf 3-4 lines mein hi dena (lekin agar code generate karna pade, toh answer lamba ho sakta hai)**. Tum hamesha user ki bhasha (${promptLanguageInstruction}) mein baat karna.`;
+        // UPDATED: Base prompt instruction now includes the dynamic language part
+        // (अपडेटेड: बेस प्रॉम्प्ट निर्देश में अब डायनामिक भाषा भाग शामिल है)
+        const basePromptInstructions = `Apne jawab hamesha casual, smart, charming aur **sirf 3-4 lines mein hi dena (lekin agar code generate karna pade, toh answer lamba ho sakta hai)**. ${promptLanguageInstruction} Tum hamesha user ki bhasha mein hi baat karna.`;
 
 
         if (isExplicitCodeRequest) {
@@ -277,8 +330,9 @@ module.exports.handleEvent = async function ({ api, event }) {
             }
 
             // Get voice reply (optional based on API key) - Use detected language
-            let voiceLangCode = userLanguage === 'hr' ? 'hi-in' : userLanguage; // Use hi-in for Haryanvi for VoiceRSS, as it might not have 'hr'
-            let voiceFilePath = await getVoiceReply(botReply, voiceLangCode);
+            // UPDATED: Use the voiceLangCodeForPrompt which is derived from detected language
+            // (अपडेटेड: voiceLangCodeForPrompt का उपयोग करें जो पहचानी गई भाषा से प्राप्त होता है)
+            let voiceFilePath = await getVoiceReply(botReply, voiceLangCodeForPrompt);
             if (voiceFilePath) {
                 api.sendMessage({ attachment: fs.createReadStream(voiceFilePath) }, threadID, (err) => {
                     if (err) console.error("Error sending voice message:", err);
@@ -376,4 +430,4 @@ module.exports.handleEvent = async function ({ api, event }) {
              return api.sendMessage(`System glitchy ho raha hai, ${fallbackUserName}. Thoda break le lo. 🙄`, event.threadID, replyToMessageID);
          }
     }
-}; 
+};
