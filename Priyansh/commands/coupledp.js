@@ -43,7 +43,7 @@ module.exports.run = async ({ api, event, args }) => {
     if (!fs.existsSync(cachePath)) fs.mkdirSync(cachePath);
 
     // ✅ Updated Render URL
-    const url = `https://rudra-pintrest-server-s6le.onrender.com/dp?q=${encodeURIComponent(query)}&n=${count}`;
+    const url = `https://rudra-pintrest-server-wg55.onrender.com/dp?q=${encodeURIComponent(query)}&n=${count}`;
     const res = await axios.get(url);
 
     if (!res.data || res.data.status !== "success" || !res.data.data.length) {
