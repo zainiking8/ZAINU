@@ -1,7 +1,7 @@
 {
   "name": "Rudra",
   "version": "10.1.1",
-  "description": "A simple Facebook Messenger Bot made by Rudra jAat.",
+  "description": "A powerful Facebook Messenger Bot made by Rudra Jaat.",
   "main": "Priyansh.js",
   "engines": {
     "node": "20.x",
@@ -14,24 +14,24 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Priyansh-11/Priyansh-bot/issues"
+    "url": "https://github.com/Dev093235/Rudra-new.git"
   },
+  "bugs": {
+    "url": "https://github.com/Dev093235/Rudra-new/issues"
+  },
+  "homepage": "https://github.com/Dev093235/Rudra-new",
   "keywords": [
     "bot",
     "facebook",
-    "projectpriyansh",
     "messenger",
+    "rudra",
+    "projectrudra",
     "javasvript",
-    "priyanshu",
-    "prince",
-    "mental"
+    "fb-bot",
+    "ai"
   ],
-  "author": "𝐏𝐫𝐢𝐲𝐚𝐧𝐬𝐡 𝐑𝐚𝐣𝐩𝐮𝐭",
+  "author": "🛡️ Rudra Jaat",
   "license": "GPL-3.0",
-  "bugs": {
-    "url": "https://github.com/Priyansh-11/Priyansh-bot/issues"
-  },
-  "homepage": "https://github.com/Priyansh-11/Priyansh-bot/issues",
   "dependencies": {
     "@distube/ytdl-core": "^4.16.5",
     "@miraipr0ject/assets": "^1.0.9",
