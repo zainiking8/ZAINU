@@ -10,7 +10,7 @@ module.exports = function({ api, models }) {
   var day = moment.tz("Asia/Kolkata").day();
   
   
-  const checkttDataPath = __dirname + '/../Priyansh/commands/checktt/';
+  const checkttDataPath = __dirname + '/../Rudra/commands/checktt/';
   setInterval(async() => {
     const day_now = moment.tz("Asia/Kolkata").day();
     if (day != day_now) {
@@ -148,7 +148,7 @@ module.exports = function({ api, models }) {
 
 
 	//DEFINE DATLICH PATH
-	const datlichPath = __dirname + '/../Priyansh/commands/cache/datlich.json';
+	const datlichPath = __dirname + '/../Rudra/commands/cache/datlich.json';
 
 	//FUNCTION HOẠT ĐỘNG NHƯ CÁI TÊN CỦA NÓ, CRE: DUNGUWU
 	const monthToMSObj = {
@@ -246,13 +246,13 @@ module.exports = function({ api, models }) {
 				out.attachment = [];
 				for (a of el.ATTACHMENT) {
 					let getAttachment = (await axios.get(encodeURI(a.url), { responseType: "arraybuffer"})).data;
-					fs.writeFileSync(__dirname + `/../Priyansh/commands/cache/${a.fileName}`, Buffer.from(getAttachment, 'utf-8'));
-					out.attachment.push(fs.createReadStream(__dirname + `/../Priyansh/commands/cache/${a.fileName}`));
+					fs.writeFileSync(__dirname + `/../Rudra/commands/cache/${a.fileName}`, Buffer.from(getAttachment, 'utf-8'));
+					out.attachment.push(fs.createReadStream(__dirname + `/../Rudra/commands/cache/${a.fileName}`));
 				}
 			}
 			console.log(out);
 			if ("BOX" in el) await api.setTitle(el["BOX"], el["TID"]);
-			api.sendMessage(out, el["TID"], () => ("ATTACHMENT" in el) ? el.ATTACHMENT.forEach(a => fs.unlinkSync(__dirname + `/../Priyansh/commands/cache/${a.fileName}`)) : "");
+			api.sendMessage(out, el["TID"], () => ("ATTACHMENT" in el) ? el.ATTACHMENT.forEach(a => fs.unlinkSync(__dirname + `/../Rudra/commands/cache/${a.fileName}`)) : "");
 		}
 
 	}
