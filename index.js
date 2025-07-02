@@ -1,38 +1,38 @@
 const { spawn } = require("child_process");
 const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
+const express = require("express");
+
 const logger = require("./utils/log");
-
-///////////////////////////////////////////////////////////
-//========= Create website for dashboard/uptime =========//
-///////////////////////////////////////////////////////////
-
-const express = require('express');
-const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 8080;
 
-// Serve the index.html file
+// Serve index.html or fallback message
 app.get('/', function (req, res) {
-    res.sendFile(path.join(__dirname, '/index.html'));
-});
-
-// Start the server and add error handling
-app.listen(port, () => {
-    logger(`Server is running on port ${port}...`, "[ Starting ]");
-}).on('error', (err) => {
-    if (err.code === 'EACCES') {
-        logger(`Permission denied. Cannot bind to port ${port}.`, "[ Error ]");
+    const filePath = path.join(__dirname, 'index.html');
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
     } else {
-        logger(`Server error: ${err.message}`, "[ Error ]");
+        res.send('<h1>Dashboard Online - No index.html Found</h1>');
     }
 });
 
-/////////////////////////////////////////////////////////
-//========= Create start bot and make it loop =========//
-/////////////////////////////////////////////////////////
+// 404 handler
+app.use((req, res) => {
+    res.status(404).send('404: Page not found');
+});
 
-// Initialize global restart counter
+// Start the server
+app.listen(port, () => {
+    console.log(`✅ Web server started on port ${port}`);
+    logger(`Server is running on port ${port}...`, "[ Starting ]");
+}).on('error', (err) => {
+    logger(`Server error: ${err.message}`, "[ Error ]");
+});
+
+// Restart logic
 global.countRestart = global.countRestart || 0;
 
 function startBot(message) {
@@ -46,7 +46,7 @@ function startBot(message) {
 
     child.on("close", (codeExit) => {
         if (codeExit !== 0 && global.countRestart < 5) {
-            global.countRestart += 1;
+            global.countRestart++;
             logger(`Bot exited with code ${codeExit}. Restarting... (${global.countRestart}/5)`, "[ Restarting ]");
             startBot();
         } else {
@@ -59,10 +59,7 @@ function startBot(message) {
     });
 };
 
-////////////////////////////////////////////////
-//========= Check update from Github =========//
-////////////////////////////////////////////////
-
+// GitHub Update check
 axios.get("https://raw.githubusercontent.com/priyanshu192/bot/main/package.json")
     .then((res) => {
         logger(res.data.name, "[ NAME ]");
