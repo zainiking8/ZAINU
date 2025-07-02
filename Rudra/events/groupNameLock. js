@@ -1,0 +1,43 @@
+const OWNER_UID = "61550558518720";
+
+// Memory storage for locked group names
+let lockedGroupNames = {}; // { threadID: groupName }
+
+module.exports.config = {
+  name: "groupNameLock",
+  version: "1.0.0",
+  description: "If group name is changed, it restores the locked name",
+  credits: "Rudra x ChatGPT"
+};
+
+module.exports.run = async function ({ event, api }) {
+  const { threadID, logMessageType, logMessageData } = event;
+
+  if (logMessageType !== "log:thread-name") return;
+
+  const lockedName = lockedGroupNames[threadID];
+  if (!lockedName) return;
+
+  const currentName = logMessageData?.name;
+  if (currentName !== lockedName) {
+    try {
+      await api.setTitle(lockedName, threadID);
+      await api.sendMessage(`⚠️ Group name locked hai. Wapas set kiya gaya: ${lockedName}`, threadID);
+    } catch (err) {
+      console.error("❌ Group name reset failed:", err);
+    }
+  }
+};
+
+// Helper methods used by the command module
+module.exports.setLockedName = function (threadID, name) {
+  lockedGroupNames[threadID] = name;
+};
+
+module.exports.removeLockedName = function (threadID) {
+  delete lockedGroupNames[threadID];
+};
+
+module.exports.getLockedName = function (threadID) {
+  return lockedGroupNames[threadID];
+};
