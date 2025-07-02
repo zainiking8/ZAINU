@@ -15,21 +15,21 @@ app.get('/', function (req, res) {
     if (fs.existsSync(filePath)) {
         res.sendFile(filePath);
     } else {
-        res.send('<h1>Dashboard Online - No index.html Found</h1>');
+        res.send('<h1>🌐 Dashboard Online - No index.html Found</h1>');
     }
 });
 
 // 404 handler
 app.use((req, res) => {
-    res.status(404).send('404: Page not found');
+    res.status(404).send('❌ 404: Page not found');
 });
 
 // Start the server
 app.listen(port, () => {
     console.log(`✅ Web server started on port ${port}`);
-    logger(`Server is running on port ${port}...`, "[ Starting ]");
+    logger(`🌐 Server is running on port ${port}...`, "[ Starting ]");
 }).on('error', (err) => {
-    logger(`Server error: ${err.message}`, "[ Error ]");
+    logger(`❌ Server error: ${err.message}`, "[ Error ]");
 });
 
 // Restart logic
@@ -38,7 +38,7 @@ global.countRestart = global.countRestart || 0;
 function startBot(message) {
     if (message) logger(message, "[ Starting ]");
 
-    const child = spawn("node", ["--trace-warnings", "--async-stack-traces", "Priyansh.js"], {
+    const child = spawn("node", ["--trace-warnings", "--async-stack-traces", "rudra.js"], {
         cwd: __dirname,
         stdio: "inherit",
         shell: true
@@ -47,27 +47,27 @@ function startBot(message) {
     child.on("close", (codeExit) => {
         if (codeExit !== 0 && global.countRestart < 5) {
             global.countRestart++;
-            logger(`Bot exited with code ${codeExit}. Restarting... (${global.countRestart}/5)`, "[ Restarting ]");
+            logger(`🔁 Bot exited with code ${codeExit}. Restarting... (${global.countRestart}/5)`, "[ Restarting ]");
             startBot();
         } else {
-            logger(`Bot stopped after ${global.countRestart} restarts.`, "[ Stopped ]");
+            logger(`🛑 Bot stopped after ${global.countRestart} restarts.`, "[ Stopped ]");
         }
     });
 
     child.on("error", (error) => {
-        logger(`An error occurred: ${JSON.stringify(error)}`, "[ Error ]");
+        logger(`❌ An error occurred: ${JSON.stringify(error)}`, "[ Error ]");
     });
-};
+}
 
 // GitHub Update check
 axios.get("https://raw.githubusercontent.com/priyanshu192/bot/main/package.json")
     .then((res) => {
-        logger(res.data.name, "[ NAME ]");
-        logger(`Version: ${res.data.version}`, "[ VERSION ]");
-        logger(res.data.description, "[ DESCRIPTION ]");
+        logger(`📦 ${res.data.name}`, "[ NAME ]");
+        logger(`📌 Version: ${res.data.version}`, "[ VERSION ]");
+        logger(`📝 ${res.data.description}`, "[ DESCRIPTION ]");
     })
     .catch((err) => {
-        logger(`Failed to fetch update info: ${err.message}`, "[ Update Error ]");
+        logger(`⚠️ Failed to fetch update info: ${err.message}`, "[ Update Error ]");
     });
 
 // Start the bot
