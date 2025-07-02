@@ -17,7 +17,7 @@ const ownerUID = "61550558518720"; // <-- अपना UID यहां डा�
 async function getVoiceReply(text, langCode = 'hi-in') { // Added langCode parameter
 // महत्वपूर्ण: आपको YOUR_API_KEY को अपनी VoiceRSS API Key से बदलना होगा
 // IMPORTANT: Replace YOUR_API_KEY with your VoiceRSS API Key
-const voiceApiUrl = `https://api.voicerss.org/?key=YOUR_API_KEY&hl=${langCode}&src=${encodeURIComponent(text)}`;
+const voiceApiUrl = https://api.voicerss.org/?key=YOUR_API_KEY&hl=${langCode}&src=${encodeURIComponent(text)};
 try {
 const response = await axios.get(voiceApiUrl, { responseType: 'arraybuffer' });
 const audioData = response.data;
@@ -33,7 +33,7 @@ return null;
 // Function to get a GIF from Giphy API (working API integrated)
 async function getGIF(query) {
 const giphyApiKey = "dc6zaTOxFJmzC"; // Working Giphy API key (free key, limited usage)
-const giphyUrl = `https://api.giphy.com/v1/gifs/search?api_key=${giphyApiKey}&q=${encodeURIComponent(query)}&limit=1`;
+const giphyUrl = https://api.giphy.com/v1/gifs/search?api_key=${giphyApiKey}&q=${encodeURIComponent(query)}&limit=1;
 try {
 const response = await axios.get(giphyUrl);
 // Check if data exists before accessing properties
@@ -61,7 +61,7 @@ cooldowns: 2,
 };
 
 const chatHistories = {};
-const AI_API_URL = "https://open-router-ai.onrender.com"; // <-- नया Render सर्वर URL
+const AI_API_URL = "https://rudra-here-hsj9.onrender.com"; // <-- नया Render सर्वर URL
 
 // User name cache to avoid fetching name repeatedly
 async function getUserName(api, userID) {
@@ -285,7 +285,7 @@ const isRiyaTrigger = body?.toLowerCase().startsWith("riya");
         voiceLangCodeForPrompt = 'hi-in';  
     } else if (userLanguage === 'pa') {  
         promptLanguageInstruction = 'User Punjabi mein baat kar raha hai. Hamesha Punjabi mein jawab dena.';  
-        voiceLangCodeForPrompt = 'pa-in';
+        voiceLangCodeForPrompt = 'pa-in';  
     } else {  
         promptLanguageInstruction = 'User Hinglish mein baat kar raha hai. Hamesha Hinglish mein jawab dena.';  
         voiceLangCodeForPrompt = 'hi-in';  
@@ -430,4 +430,4 @@ const isRiyaTrigger = body?.toLowerCase().startsWith("riya");
     }  
 }
 
-};
+}; 
