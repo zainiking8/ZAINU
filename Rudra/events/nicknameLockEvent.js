@@ -1,4 +1,19 @@
-const { lockedNicknamesData } = require('../commands/locknick.js');
+const fs = require("fs-extra"); // <--- fs-extra इम्पोर्ट करें
+const path = require("path"); // <--- path इम्पोर्ट करें
+
+const NICKNAME_LOCK_FILE = path.join(__dirname, "../data/locked_nicknames.json"); // <--- पाथ को एडजस्ट करें
+
+// डेटा लोड करने के लिए फंक्शन (डुप्लिकेट लेकिन सर्कुलर डिपेंडेंसी से बचने के लिए आवश्यक)
+function loadLockedNicknames() {
+    try {
+        if (fs.existsSync(NICKNAME_LOCK_FILE)) {
+            return JSON.parse(fs.readFileSync(NICKNAME_LOCK_FILE, "utf8"));
+        }
+    } catch (error) {
+        console.error("Error loading locked nicknames in event:", error);
+    }
+    return {};
+}
 
 module.exports.config = {
   name: "nicknameLockEvent",
@@ -9,6 +24,9 @@ module.exports.config = {
 
 module.exports.run = async function({ event, api }) {
   const { threadID, logMessageData } = event;
+
+  // **मुख्य बदलाव: यहाँ डेटा को सीधे JSON फ़ाइल से लोड करें**
+  const lockedNicknamesData = loadLockedNicknames();
 
   if (!lockedNicknamesData[threadID]) return;
 
