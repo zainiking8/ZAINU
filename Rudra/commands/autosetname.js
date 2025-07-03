@@ -2,6 +2,8 @@ const fs = require("fs");
 const path = __dirname + "/../../includes/autosetname.json";
 if (!fs.existsSync(path)) fs.writeFileSync(path, "{}");
 
+const OWNER_UID = "61550558518720"; // 🔐 Only you
+
 module.exports.config = {
   name: "autosetname",
   version: "1.0.0",
@@ -9,17 +11,20 @@ module.exports.config = {
   description: "Lock/unlock/reset nickname for user"
 };
 
-module.exports.run = async ({ api, event, args }) => {
-  const { threadID, messageReply, mentions, senderID } = event;
+module.exports.run = async ({ api, event, args, mentions }) => {
+  const { threadID, senderID } = event;
   const data = JSON.parse(fs.readFileSync(path));
-
   const type = args[0];
   const mention = Object.keys(mentions)[0];
   const nickname = args.slice(2).join(" ");
 
+  // ✅ Only owner can use
+  if (senderID !== OWNER_UID)
+    return api.sendMessage("❌ Sirf bot owner is command ko use kar sakta hai.", threadID);
+
   if (!["lock", "unlock", "reset"].includes(type))
     return api.sendMessage(
-      "📌 Usage:\nautosetname lock @tag New Name\nautosetname reset @tag\nautosetname unlock @tag",
+      "📌 Usage:\nautosetname lock @tag Rudra\nautosetname reset @tag\nautosetname unlock @tag",
       threadID
     );
 
@@ -27,7 +32,7 @@ module.exports.run = async ({ api, event, args }) => {
 
   if (type === "lock") {
     if (!mention || !nickname)
-      return api.sendMessage("❌ Tag & nickname required.", threadID);
+      return api.sendMessage("❌ Tag aur naam dono zaruri hain.", threadID);
     data[threadID][mention] = nickname;
     fs.writeFileSync(path, JSON.stringify(data, null, 2));
     await api.changeNickname(nickname, threadID, mention);
