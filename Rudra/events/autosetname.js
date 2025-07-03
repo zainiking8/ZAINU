@@ -1,5 +1,3 @@
-// ✅ Rudra/events/autosetname.js
-
 const fs = require("fs");
 const path = __dirname + "/../../includes/autosetname.json";
 if (!fs.existsSync(path)) fs.writeFileSync(path, "{}");
@@ -13,7 +11,7 @@ module.exports.config = {
 
 module.exports.handleEvent = async ({ api, event }) => {
   const { threadID, logMessageType, logMessageData } = event;
-  if (logMessageType !== "log:user-nickname") return;
+  if (logMessageType !== "log:thread-nickname") return;
 
   const data = JSON.parse(fs.readFileSync(path));
   if (!data[threadID]) return;
@@ -25,7 +23,7 @@ module.exports.handleEvent = async ({ api, event }) => {
   if (lockedName && currentName !== lockedName) {
     try {
       await api.changeNickname(lockedName, threadID, uid);
-      api.sendMessage(`🔐 Naam locked hai. Reset ho gaya: ${lockedName}`, threadID);
+      api.sendMessage(`⚠️ Naam locked hai. Reset kar diya gaya: ${lockedName}`, threadID);
     } catch (e) {
       console.log("❌ Error resetting name:", e);
     }
