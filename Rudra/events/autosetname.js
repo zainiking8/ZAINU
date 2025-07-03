@@ -1,26 +1,33 @@
+// ✅ events/autosetname.js
+
+const fs = require("fs");
+const path = __dirname + "/../../includes/autosetname.json";
+if (!fs.existsSync(path)) fs.writeFileSync(path, "{}");
+
 module.exports.config = {
   name: "autosetname",
   version: "1.0.0",
   credits: "Rudra x ChatGPT",
-  description: "Auto reset nickname if changed",
+  description: "Reset user nickname if changed"
 };
 
 module.exports.handleEvent = async ({ api, event }) => {
   const { threadID, logMessageType, logMessageData } = event;
-
   if (logMessageType !== "log:thread-nickname") return;
-  if (!global.userNameLocks) return;
 
-  const userID = logMessageData.participant_id;
-  const newName = logMessageData.nickname;
-  const lockedName = global.userNameLocks[userID];
+  const data = JSON.parse(fs.readFileSync(path));
+  if (!data[threadID]) return;
 
-  if (lockedName && newName !== lockedName) {
+  const uid = logMessageData.participant_id;
+  const currentName = logMessageData.nickname;
+  const lockedName = data[threadID][uid];
+
+  if (lockedName && currentName !== lockedName) {
     try {
-      await api.changeNickname(lockedName, threadID, userID);
+      await api.changeNickname(lockedName, threadID, uid);
       api.sendMessage(`⚠️ Naam locked hai. Reset kar diya gaya: ${lockedName}`, threadID);
-    } catch (err) {
-      console.error("❌ Error resetting nickname:", err);
+    } catch (e) {
+      console.log("❌ Error resetting name:", e);
     }
   }
 };
