@@ -1,56 +1,60 @@
 const fs = require("fs");
-const path = __dirname + "/../../includes/autosetname.json";
-if (!fs.existsSync(path)) fs.writeFileSync(path, "{}");
+const path = require("path");
 
-const OWNER_UID = "61550558518720"; // 🔐 Only you
+const LOCKS_PATH = path.join(__dirname, "../../../includes/database/nameLocks.json");
+const OWNER_UID = "61550558518720"; // 🔒 Owner UID
 
 module.exports.config = {
   name: "autosetname",
-  version: "1.0.0",
-  credits: "Rudra x ChatGPT",
-  description: "Lock/unlock/reset nickname for user"
+  version: "1.0",
+  author: "Rudra",
+  countDown: 0,
+  role: 0,
+  shortDescription: "Lock/unlock user's nickname",
+  longDescription: "Lock or unlock nickname for a specific user in a thread",
+  category: "utility",
+  guide: {
+    en: "{pn} lock @mention NewName\n{pn} unlock @mention"
+  }
 };
 
-module.exports.run = async ({ api, event, args, mentions }) => {
-  const { threadID, senderID } = event;
-  const data = JSON.parse(fs.readFileSync(path));
-  const type = args[0];
-  const mention = Object.keys(mentions)[0];
-  const nickname = args.slice(2).join(" ");
+module.exports.run = async function ({ api, event, args }) {
+  if (event.senderID !== OWNER_UID) return api.sendMessage("❌ Sirf owner is command ko chala sakta hai.", event.threadID);
 
-  // ✅ Only owner can use
-  if (senderID !== OWNER_UID)
-    return api.sendMessage("❌ Sirf bot owner is command ko use kar sakta hai.", threadID);
+  if (!args[0] || event.mentions == undefined || Object.keys(event.mentions).length === 0)
+    return api.sendMessage("❌ Use: lock/unlock @mention Name", event.threadID);
 
-  if (!["lock", "unlock", "reset"].includes(type))
-    return api.sendMessage(
-      "📌 Usage:\nautosetname lock @tag Rudra\nautosetname reset @tag\nautosetname unlock @tag",
-      threadID
-    );
+  const action = args[0].toLowerCase();
+  const mentionedID = Object.keys(event.mentions)[0];
+  const nameArgs = args.slice(1).join(" ").replace(/@.+?\s/, '').trim();
 
-  if (!data[threadID]) data[threadID] = {};
-
-  if (type === "lock") {
-    if (!mention || !nickname)
-      return api.sendMessage("❌ Tag aur naam dono zaruri hain.", threadID);
-    data[threadID][mention] = nickname;
-    fs.writeFileSync(path, JSON.stringify(data, null, 2));
-    await api.changeNickname(nickname, threadID, mention);
-    return api.sendMessage(`🔒 Naam lock ho gaya: ${nickname}`, threadID);
+  let locks = {};
+  if (fs.existsSync(LOCKS_PATH)) {
+    locks = JSON.parse(fs.readFileSync(LOCKS_PATH, "utf-8"));
   }
 
-  if (type === "unlock") {
-    if (!mention) return api.sendMessage("❌ Tag required.", threadID);
-    delete data[threadID][mention];
-    fs.writeFileSync(path, JSON.stringify(data, null, 2));
-    return api.sendMessage(`🔓 Naam unlock ho gaya.`, threadID);
+  const threadID = event.threadID;
+
+  if (!locks[threadID]) locks[threadID] = {};
+
+  if (action === "lock") {
+    if (!nameArgs) return api.sendMessage("❌ Lock karne ke liye name bhi do!", threadID);
+
+    locks[threadID][mentionedID] = nameArgs;
+    fs.writeFileSync(LOCKS_PATH, JSON.stringify(locks, null, 2));
+    api.changeNickname(nameArgs, threadID, mentionedID);
+    return api.sendMessage(`🔒 Naam lock ho gaya: ${nameArgs}`, threadID);
   }
 
-  if (type === "reset") {
-    if (!mention) return api.sendMessage("❌ Tag required.", threadID);
-    const lockedName = data[threadID][mention];
-    if (!lockedName) return api.sendMessage("⚠️ Naam locked nahi hai.", threadID);
-    await api.changeNickname(lockedName, threadID, mention);
-    return api.sendMessage(`♻️ Naam reset kar diya gaya: ${lockedName}`, threadID);
+  if (action === "unlock") {
+    if (locks[threadID] && locks[threadID][mentionedID]) {
+      delete locks[threadID][mentionedID];
+      fs.writeFileSync(LOCKS_PATH, JSON.stringify(locks, null, 2));
+      return api.sendMessage("🔓 Naam unlock ho gaya.", threadID);
+    } else {
+      return api.sendMessage("⚠️ Naam locked nahi tha.", threadID);
+    }
   }
+
+  return api.sendMessage("❌ Galat command! Use lock/unlock @mention", threadID);
 };
