@@ -1,7 +1,6 @@
 const fs = require("fs-extra");
 const path = require("path");
 
-const OWNER_UID = "61550558518720";
 const lockNickDataPath = path.join(__dirname, "locknick.json");
 let lockNickData = fs.existsSync(lockNickDataPath) ? JSON.parse(fs.readFileSync(lockNickDataPath)) : {};
 
@@ -12,21 +11,18 @@ function saveLockData() {
 module.exports = {
   config: {
     name: "locknick",
-    version: "1.0.1",
-    author: "Rudra x ChatGPT",
+    version: "1.0.0",
+    author: "Raj",
     countDown: 5,
-    role: 0,
-    shortDescription: "Lock all nicknames in group",
-    longDescription: "Prevents members from changing nicknames",
+    role: 1,
+    shortDescription: "Lock all members' nicknames in a group",
+    longDescription: "Prevents members from changing their nicknames",
     category: "group",
     guide: "{p}locknick on/off"
   },
 
   onStart: async function ({ message, event, args, api }) {
     const threadID = event.threadID;
-    const senderID = event.senderID;
-
-    if (senderID !== OWNER_UID) return message.reply("❌ Sirf bot ke owner ko yeh command chalane ki ijazat hai.");
 
     if (!args[0]) return message.reply("⚠️ इस्तेमाल करें: locknick on/off");
 
