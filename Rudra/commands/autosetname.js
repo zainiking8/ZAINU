@@ -1,55 +1,61 @@
+// ✅ commands/autosetname.js
+
+const fs = require("fs");
+const path = __dirname + "/../../includes/autosetname.json";
 const OWNER_UID = "61550558518720";
-global.userNameLocks = global.userNameLocks || {}; // { userID: lockedName }
+
+if (!fs.existsSync(path)) fs.writeFileSync(path, "{}");
 
 module.exports.config = {
   name: "autosetname",
-  version: "1.0.0",
+  version: "1.0.1",
   hasPermssion: 0,
   credits: "Rudra x ChatGPT",
-  description: "Lock a user's nickname. Bot will auto reset if changed.",
+  description: "Lock/unlock user nickname in group",
   commandCategory: "group",
-  usages: "autosetname lock/unlock/reset @tag [new name]",
+  usages: "autosetname lock/reset/unlock @tag Name",
   cooldowns: 3
 };
 
 module.exports.run = async ({ api, event, args }) => {
-  const { senderID, threadID, mentions } = event;
+  const { threadID, senderID, mentions } = event;
+  if (senderID !== OWNER_UID)
+    return api.sendMessage("❌ Ye command sirf malik (UID: 61550558518720) ke liye hai.", threadID);
 
-  if (senderID !== OWNER_UID) {
-    return api.sendMessage("❌ Sirf bot ka malik (UID: 61550558518720) is command ko chala sakta hai.", threadID);
-  }
-
+  const data = JSON.parse(fs.readFileSync(path));
   const subcmd = args[0]?.toLowerCase();
   const mentionIDs = Object.keys(mentions);
 
-  if (!["lock", "unlock", "reset"].includes(subcmd) || mentionIDs.length === 0) {
-    return api.sendMessage(
-      "📌 Usage:\n• autosetname lock @tag <name>\n• autosetname unlock @tag\n• autosetname reset @tag",
-      threadID
-    );
-  }
+  if (!["lock", "unlock", "reset"].includes(subcmd) || mentionIDs.length === 0)
+    return api.sendMessage("📌 Usage:\nautosetname lock @tag Rudra King\nautosetname reset @tag\nautosetname unlock @tag", threadID);
 
-  const userID = mentionIDs[0];
+  const uid = mentionIDs[0];
 
   switch (subcmd) {
     case "lock":
-      const newName = args.slice(2).join(" ");
-      if (!newName) return api.sendMessage("❗ Naam bhi do jise lock karna hai.", threadID);
-      global.userNameLocks[userID] = newName;
-      await api.changeNickname(newName, threadID, userID);
-      return api.sendMessage(`🔒 Naam lock ho gaya: ${newName}`, threadID);
+      const nameToLock = args.slice(2).join(" ");
+      if (!nameToLock) return api.sendMessage("❗ Naam bhi do lock karne ke liye.", threadID);
+      if (!data[threadID]) data[threadID] = {};
+      data[threadID][uid] = nameToLock;
+      fs.writeFileSync(path, JSON.stringify(data, null, 2));
+      await api.changeNickname(nameToLock, threadID, uid);
+      return api.sendMessage(`🔒 Naam lock ho gaya: ${nameToLock}`, threadID);
 
     case "unlock":
-      if (!global.userNameLocks[userID]) return api.sendMessage("⚠️ Is user ka naam lock nahi hai.", threadID);
-      delete global.userNameLocks[userID];
-      return api.sendMessage("🔓 Naam unlock kar diya gaya.", threadID);
+      if (data[threadID]?.[uid]) {
+        delete data[threadID][uid];
+        fs.writeFileSync(path, JSON.stringify(data, null, 2));
+        return api.sendMessage("🔓 Naam unlock kar diya gaya.", threadID);
+      } else {
+        return api.sendMessage("⚠️ Koi naam lock nahi mila is user ke liye.", threadID);
+      }
 
     case "reset":
-      if (!global.userNameLocks[userID]) return api.sendMessage("⚠️ Naam lock nahi mila reset ke liye.", threadID);
-      await api.changeNickname(global.userNameLocks[userID], threadID, userID);
-      return api.sendMessage(`✅ Naam reset kiya gaya: ${global.userNameLocks[userID]}`, threadID);
-
-    default:
-      return api.sendMessage("❓ Command galat hai. Try: autosetname lock/unlock/reset @tag [name]", threadID);
+      if (data[threadID]?.[uid]) {
+        await api.changeNickname(data[threadID][uid], threadID, uid);
+        return api.sendMessage(`✅ Naam wapas set kar diya gaya: ${data[threadID][uid]}`, threadID);
+      } else {
+        return api.sendMessage("⚠️ Koi locked naam set nahi hai.", threadID);
+      }
   }
 };
