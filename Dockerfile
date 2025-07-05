@@ -1,6 +1,6 @@
 FROM node:20-slim
 
-# Puppeteer dependencies
+# Install dependencies for puppeteer to work
 RUN apt-get update && apt-get install -y \
     wget \
     ca-certificates \
@@ -19,20 +19,23 @@ RUN apt-get update && apt-get install -y \
     libxdamage1 \
     libxrandr2 \
     xdg-utils \
-    libgbm1 \
-    libxshmfence1 \
     --no-install-recommends && \
-    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Create app directory
-WORKDIR /app
+# Puppeteer needs non-root user sometimes
+RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
+    && mkdir -p /home/pptruser/Downloads \
+    && chown -R pptruser:pptruser /home/pptruser
 
+# Create working dir
+WORKDIR /app
 COPY . .
 
+# Install deps
 RUN npm install
 
-# Puppeteer uses Chromium, expose if needed
-EXPOSE 8080
+# Run as pptruser
+USER pptruser
 
+EXPOSE 8080
 CMD ["node", "index.js"]
