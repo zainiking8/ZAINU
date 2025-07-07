@@ -26,22 +26,27 @@ module.exports.run = async function ({ api, event }) {
   const dateNow = moment.tz("Asia/Kolkata").format("『DD/MM/YYYY』 ⌚ 【HH:mm:ss】");
 
   const imgLinks = [
-    "https://i.imgur.com/7vCTqbA.jpeg",
-    "https://i.imgur.com/VoPlE0Q.jpeg",
-    "https://i.imgur.com/5yHDG3r.jpeg",
-    "https://i.imgur.com/6rlJUGk.jpeg"
+    "https://i.imgur.com/WhVSHLB.png",
+    "https://i.imgur.com/QcNXYfT.jpg",
+    "https://i.imgur.com/rg0fjQE.jpg",
+    "https://i.postimg.cc/4yVw6tm7/Picsart-23-03-26-11-08-19-025.jpg"
   ];
 
   const chosenImage = imgLinks[Math.floor(Math.random() * imgLinks.length)];
 
   const msg = 
 `╔═══✦༻🔥༺✦═══╗
-        𝐒𝐖𝐀𝐆 𝐌𝐎𝐃𝐄 𝐎𝐍 😎
+         𝗢𝗪𝗡𝗘𝗥 🔥☞︎︎︎ 𝙰𝚛𝚞𝚗 𝙺𝚞𝚖𝚊𝚛 ☜︎︎︎✰ \n\n
+🙈🄾🅆🄽🄴🅁 🄲🄾🄽🅃🄰🄲🅃 🄻🄸🄽🄺🅂🙈➪ \n\n  𝗙𝗔𝗖𝗘𝗕𝗢𝗢𝗞 🧨https://www.facebook.com/arun.x76 💞🕊️
+  \n 
+✅𝗜𝗡𝗦𝗧𝗔𝗚𝗥𝗔𝗠 𝗨𝗦𝗘𝗥𝗡𝗔𝗠𝗘👉 @arunkumar_031 \n\n  ====𝗧𝗼 𝗹𝗲𝗮𝗿𝗻 𝗛𝗼𝘄 𝘁𝗼 𝗖𝗿𝗲𝗮𝘁𝗲 𝗔 𝗯𝗼𝘁 === 𝗩𝗶𝘀𝗶𝘁 𝗔𝗻𝗱 𝗦𝘂𝗯𝘀𝗰𝗿𝗶𝗯𝗲 𝗧𝗼 𝗠𝘆 𝗖𝗵𝗮𝗻𝗻𝗲𝗹✅ 🗡 https://www.youtube.com/@mirrykal
+✧══════•❁❀❁•══════✧
+Youtube channel : https://m.youtube.com/@mirrykal
 ╚═══✦༻🔥༺✦═══╝
 
-🧠 𝗢𝗪𝗡𝗘𝗥: 𓆩 𝑹𝑼𝑫𝑹𝑨 ⚡𓆪
-👑 𝗕𝗢𝗧 𝗡𝗔𝗠𝗘: ${global.config.BOTNAME || "🔥 𝐑𝐔𝐃𝐑𝐀 ⚔️"}
-🔗 𝗜𝗡𝗦𝗧𝗔: @haryana_aala_sayzs
+
+👑 𝗕𝗢𝗧 𝗡𝗔𝗠𝗘: ${global.config.BOTNAME || "🔥𝙰𝚛𝚞𝚗 𝙺𝚞𝚖𝚊𝚛 "}
+🔗 𝗜𝗡𝗦𝗧𝗔: @mirrykal 
 🆔 𝗨𝗜𝗗: 61550558518720
 
 🌐 𝗣𝗥𝗘𝗙𝗜𝗫: 『 ${global.config.PREFIX || "+"} 』
@@ -50,9 +55,7 @@ module.exports.run = async function ({ api, event }) {
 
 📜 𝗧𝗬𝗣𝗘: '${global.config.PREFIX || "+"}help' 𝗧𝗢 𝗦𝗘𝗘 𝗔𝗟𝗟 𝗖𝗢𝗠𝗠𝗔𝗡𝗗𝗦 💌
 
-╭──────────────╮
-💖 𝑴𝒂𝒅𝒆 𝒘𝒊𝒕𝒉 𝑺𝒘𝒂𝒈 𝒃𝒚 𝑹𝑼𝑫𝑹𝑨 💥
-╰──────────────╯`;
+╯`;
 
   const callback = () =>
     api.sendMessage(
