@@ -3,86 +3,110 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Rudra Bot — 24x7 Online</title>
+  <title>Subscribe to Mirrykal</title>
   <style>
-    * {
+    body {
       margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    html, body {
-      height: 100%;
-      font-family: 'Segoe UI', sans-serif;
       overflow: hidden;
+      background: black;
+      animation: blink 0.5s infinite alternate;
     }
-    .slideshow {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
+    @keyframes blink {
+      0%   { background-color: #ff0033; }
+      25%  { background-color: #ffcc00; }
+      50%  { background-color: #00ccff; }
+      75%  { background-color: #66ff66; }
+      100% { background-color: #ff66cc; }
     }
-    .slideshow img {
+    iframe {
       position: absolute;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0;
-      animation: fade 15s infinite;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 60vh;
+      border: none;
     }
-    .slideshow img:nth-child(1) { animation-delay: 0s; }
-    .slideshow img:nth-child(2) { animation-delay: 5s; }
-    .slideshow img:nth-child(3) { animation-delay: 10s; }
-
-    @keyframes fade {
-      0% { opacity: 0; }
-      10% { opacity: 1; }
-      30% { opacity: 1; }
-      40% { opacity: 0; }
-      100% { opacity: 0; }
-    }
-
-    .info-box {
+    .sticker-container {
       position: absolute;
-      bottom: 30px;
+      bottom: 5%;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
-      padding: 20px 30px;
-      border-radius: 20px;
       text-align: center;
-      color: white;
-      box-shadow: 0 0 30px rgba(255, 0, 255, 0.4);
     }
-
-    .info-box h1 {
-      color: #ff4ddb;
+    .sticker-img {
+      height: 150px;
+      animation: bounce 1s infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .subscribe-button, .unmute-button {
+      margin-top: -20px;
       font-size: 24px;
+      padding: 12px 24px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      animation: pulse 1.5s infinite;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
       margin-bottom: 10px;
-      text-shadow: 0 0 10px #ff4ddb;
     }
-
-    .info-box p {
-      font-size: 16px;
-      line-height: 1.5;
-    }
-
-    .info-box b {
-      color: #00eaff;
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
     }
   </style>
 </head>
 <body>
-  <div class="slideshow">
-    <img src="https://i.imgur.com/8D8s7Eb.jpeg" alt="Slide 1">
-    <img src="https://i.imgur.com/JkH0rZ8.jpeg" alt="Slide 2">
-    <img src="https://i.imgur.com/FHc9LDY.jpeg" alt="Slide 3">
+  <!-- YouTube iframe -->
+  <div id="player"></div>
+
+  <!-- Sticker + Buttons -->
+  <div class="sticker-container">
+    <img src="https://media.giphy.com/media/12HZukMBlutpoQ/giphy.gif" alt="Animal Sticker" class="sticker-img">
+    <button class="subscribe-button" onclick="alert('Thanks for subscribing! 🎉')">SUBSCRIBE</button>
+    <button class="unmute-button" onclick="unmuteVideo()">🔊 UNMUTE VIDEO</button>
   </div>
 
-  <div class="info-box">
-    <h1>🤖 Rudra Bot — 24x7 Online</h1>
-    <p>📸 Insta ID: <b>@haryana_aala_sayzs</b><br/>
-    📱 WhatsApp: <b>8950386412</b><br/>
-    🔥 Always active, always stylish!</p>
-  </div>
+  <!-- YouTube API Script -->
+  <script>
+    var player;
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        height: '100%',
+        width: '100%',
+        videoId: 'aZXKCFPxKjs',
+        playerVars: {
+          autoplay: 1,
+          mute: 1,
+          loop: 1,
+          playlist: 'aZXKCFPxKjs',
+          controls: 0,
+          modestbranding: 1,
+          showinfo: 0
+        },
+        events: {
+          onReady: (e) => e.target.playVideo()
+        }
+      });
+    }
+
+    function unmuteVideo() {
+      if (player) {
+        player.unMute();
+      }
+    }
+
+    // Load YouTube API
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.body.appendChild(tag);
+  </script>
 </body>
 </html>
