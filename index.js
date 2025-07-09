@@ -1,42 +1,41 @@
 const { spawn } = require("child_process");
 const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
-const express = require("express");
-
 const logger = require("./utils/log");
+
+///////////////////////////////////////////////////////////
+//========= Create website for dashboard/uptime =========//
+///////////////////////////////////////////////////////////
+
+const express = require('express');
+const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 8080;
 
-// Serve index.html or fallback message
+// Serve the index.html file
 app.get('/', function (req, res) {
-    const filePath = path.join(__dirname, 'index.html');
-    if (fs.existsSync(filePath)) {
-        res.sendFile(filePath);
+    res.sendFile(path.join(__dirname, '/index.html'));
+});
+
+// Start the server and add error handling
+app.listen(port, () => {
+    logger(`Server is running on port ${port}...`, "[ MirryKal ]");
+}).on('error', (err) => {
+    if (err.code === 'EACCES') {
+        logger(`Permission denied. Cannot bind to port ${port}.`, "[ MirryKal ]");
     } else {
-        res.send('<h1>🌐 Dashboard Online - No index.html Found</h1>');
+        logger(`Server error: ${err.message}`, "[ Rudra ]");
     }
 });
 
-// 404 handler
-app.use((req, res) => {
-    res.status(404).send('❌ 404: Page not found');
-});
+/////////////////////////////////////////////////////////
+//========= Start bot with auto-restart on crash =======//
+/////////////////////////////////////////////////////////
 
-// Start the server
-app.listen(port, () => {
-    console.log(`✅ Web server started on port ${port}`);
-    logger(`🌐 Server is running on port ${port}...`, "[ Starting ]");
-}).on('error', (err) => {
-    logger(`❌ Server error: ${err.message}`, "[ Error ]");
-});
-
-// Restart logic
 global.countRestart = global.countRestart || 0;
 
 function startBot(message) {
-    if (message) logger(message, "[ Starting ]");
+    if (message) logger(message, "[ Rudra ]");
 
     const child = spawn("node", ["--trace-warnings", "--async-stack-traces", "rudra.js"], {
         cwd: __dirname,
@@ -47,27 +46,30 @@ function startBot(message) {
     child.on("close", (codeExit) => {
         if (codeExit !== 0 && global.countRestart < 5) {
             global.countRestart++;
-            logger(`🔁 Bot exited with code ${codeExit}. Restarting... (${global.countRestart}/5)`, "[ Restarting ]");
+            logger(`Bot exited with code ${codeExit}. Restarting... (${global.countRestart}/5)`, "[ Rudra ]");
             startBot();
         } else {
-            logger(`🛑 Bot stopped after ${global.countRestart} restarts.`, "[ Stopped ]");
+            logger(`Bot stopped after ${global.countRestart} restarts.`, "[ Rudra ]");
         }
     });
 
     child.on("error", (error) => {
-        logger(`❌ An error occurred: ${JSON.stringify(error)}`, "[ Error ]");
+        logger(`An error occurred: ${JSON.stringify(error)}`, "[ Rudra ]");
     });
 }
 
-// GitHub Update check
+////////////////////////////////////////////////
+//========= Check update from GitHub =========//
+////////////////////////////////////////////////
+
 axios.get("https://raw.githubusercontent.com/priyanshu192/bot/main/package.json")
     .then((res) => {
-        logger(`📦 ${res.data.name}`, "[ NAME ]");
-        logger(`📌 Version: ${res.data.version}`, "[ VERSION ]");
-        logger(`📝 ${res.data.description}`, "[ DESCRIPTION ]");
+        logger(res.data.name, "[ Rudra ]");
+        logger(`Version: ${res.data.version}`, "[ Rudra ]");
+        logger(res.data.description, "[ Rudra ]");
     })
     .catch((err) => {
-        logger(`⚠️ Failed to fetch update info: ${err.message}`, "[ Update Error ]");
+        logger(`Failed to fetch update info: ${err.message}`, "[ Rudra ]");
     });
 
 // Start the bot
