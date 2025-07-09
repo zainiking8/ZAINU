@@ -35,7 +35,7 @@ app.listen(port, () => {
 global.countRestart = global.countRestart || 0;
 
 function startBot(message) {
-    if (message) logger(message, "[ Rudra ]");
+    if (message) logger(message, "[ MirryKal ]");
 
     const child = spawn("node", ["--trace-warnings", "--async-stack-traces", "rudra.js"], {
         cwd: __dirname,
