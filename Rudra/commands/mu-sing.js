@@ -5,7 +5,7 @@ const ytSearch = require("yt-search");
 
 module.exports = {
   config: {
-    name: "music",
+    name: "sing",
     version: "1.0.3",
     hasPermssion: 0,
     credits: "𝐏𝐫𝐢𝐲𝐚𝐧𝐬𝐡 𝐑𝐚𝐣𝐩𝐮𝐭",
