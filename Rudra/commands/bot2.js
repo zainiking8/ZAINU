@@ -3,7 +3,7 @@ module.exports.config = {
   name: "goibot2",
   version: "1.0.1",
   hasPermssion: 0,
-  credits: "Fixed By Arun Kumar",
+  credits: "Fixed By ZAIN JOIYA",
   description: "goibot2",
   commandCategory: "Noprefix",
   usages: "noprefix",
@@ -23,7 +23,7 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
 
   if (event.body.indexOf("Song") == 0 || (event.body.indexOf("song") == 0)) {
     var msg = {
-      body: `𝗛𝗲𝗹𝗹𝗼 🎵${name}🔊,  \n\n𝗧𝗵𝗶𝘀 𝗶𝘀 𝗙𝗼𝗿 𝘆𝗼𝘂💞 »»\n『\n   ${rand}  』\n\n𝙲𝚛𝚎𝚍𝚒𝚝𝚜»» ◎ 𝗔𝗿𝘂𝗻 𝗞𝘂𝗺𝗮𝗿 ◎`
+      body: `𝗛𝗲𝗹𝗹𝗼 🎵${name}🔊,  \n\n𝗧𝗵𝗶𝘀 𝗶𝘀 𝗙𝗼𝗿 𝘆𝗼𝘂💞 »»\n『\n   ${rand}  』\n\n𝙲𝚛𝚎𝚍𝚒𝚝𝚜»» ◎ ZAINU 🙂💔 ◎`
     }
     return api.sendMessage(msg, threadID, messageID);
   };
