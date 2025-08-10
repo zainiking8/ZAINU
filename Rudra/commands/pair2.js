@@ -2,7 +2,7 @@ module.exports.config = {
 	name: "pair2",
 	version: "1.0.1",
 	hasPermssion: 0,
-	credits: "𝐏𝐫𝐢𝐲𝐚𝐧𝐬𝐡 𝐑𝐚𝐣𝐩𝐮𝐭",
+	credits: "ZAINU X BRAND",
 	description: "",
 	commandCategory: "Picture",
 	cooldowns: 5,
