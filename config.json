@@ -4,7 +4,7 @@
     "DeveloperMode": false,
     "autoCreateDB": true,
     "allowInbox": true,
-    "autoClean": false,
+    "autoClean": true,
     "adminOnly": false,
     "keyAdminOnly": "100089995156561",
     "commandDisabled": [],
@@ -12,8 +12,8 @@
     "EMAIL": "",
     "PASSWORD": "",
     "OTPKEY": "",
-    "BOTNAME": "ZAINU X BRAND",
-    "PREFIX": "+",
+    "BOTNAME": "TERI BANDI",
+    "PREFIX": "*",
     "OTHERBOT": [
         ""
     ],
